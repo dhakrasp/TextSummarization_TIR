@@ -3,7 +3,6 @@ from __future__ import print_function
 import numpy as np
 import codecs
 import json
-# from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, Activation, Dropout, Embedding, TimeDistributed, RepeatVector
@@ -72,7 +71,7 @@ def build_graph(hyper_params, model_file):
     embedding_dim = hyper_params['embedding_dim']
     hidden_dim = hyper_params['hidden_dim']
     output_dim = hyper_params['output_dim']
-    batch_size = hyper_params['batch_size']
+    # batch_size = hyper_params['batch_size']
     num_layers = hyper_params['num_layers']
     max_src_len = hyper_params['max_src_len']
     max_tar_len = hyper_params['max_tar_len']
@@ -90,7 +89,7 @@ def build_graph(hyper_params, model_file):
     model = Sequential()
     model.add(Embedding(input_dim + 1, embedding_dim, init='lecun_uniform', dropout=0.2,
                         input_shape=(max_src_len, input_dim), mask_zero=True))
-    RNNCell = LSTM
+    RNNCell = cell_type
 
     # This is the encoder
     model.add(RNNCell(hidden_dim, dropout_W=0.2, dropout_U=0.2))
@@ -105,7 +104,7 @@ def build_graph(hyper_params, model_file):
     model.add(TimeDistributed(Dense(output_dim)))
     model.add(Activation('softmax'))
 
-    model.compile(loss='binary_crossentropy', optimizer='rmsprop')
+    model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
     model_json = model.to_json()
     print(model_json)
     with open(model_file, mode='w') as f:
@@ -157,6 +156,7 @@ if __name__ == '__main__':
 
     src_tokenizer = Tokenizer(Vocab('vocab/src_vocab', 10000))
     tar_tokenizer = Tokenizer(Vocab('vocab/tar_vocab', 10000))
+
     X, Y = preprocess_data(src_txt, src_tokenizer, tar_txt, tar_tokenizer)
 
     input_dim = src_tokenizer.vocab.NumIds() + 1
@@ -180,8 +180,12 @@ if __name__ == '__main__':
     hyper_params['max_src_len'] = MAX_SRC_LEN
     hyper_params['max_tar_len'] = MAX_TAR_LEN
 
+    model_file = 'model'
+    weights_file = 'weights'
     model, src_tokenizer, tar_tokenizer = train(
-        X, Y, hyper_params, epochs, model_file='model', weights_file='weights')
+        X, Y, hyper_params, epochs, model_file=model_file, weights_file=weights_file)
+
+    model = model_from_json(model_file)
 
     test_txt = []
     for i in range(1):

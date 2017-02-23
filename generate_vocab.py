@@ -41,9 +41,9 @@ def write_vocab(data_dir_name, vocab_file_name):
 
 
 if __name__ == '__main__':
-    data_dir_name = 'target'
-    vocab_file_name = 'vocab/tar_vocab'
+    data_dir_name = 'data/toy/en'
+    vocab_file_name = 'vocab/en_vocab'
     write_vocab(data_dir_name, vocab_file_name)
-    data_dir_name = 'source'
-    vocab_file_name = 'vocab/src_vocab'
+    data_dir_name = 'data/toy/de'
+    vocab_file_name = 'vocab/de_vocab'
     write_vocab(data_dir_name, vocab_file_name)

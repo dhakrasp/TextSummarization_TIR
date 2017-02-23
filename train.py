@@ -35,12 +35,12 @@ def build_graph(hyper_params, model_file):
         cell_type = GRU
     else:
         cell_type = LSTM
+    RNNCell = cell_type
 
     # lstm model
     model = Sequential()
     model.add(Embedding(input_dim + 1, embedding_dim, init='lecun_uniform', dropout=0.2,
                         input_shape=(max_src_len, input_dim), mask_zero=True))
-    RNNCell = cell_type
 
     # This is the encoder
     model.add(RNNCell(hidden_dim, dropout_W=0.2, dropout_U=0.2))
@@ -93,13 +93,13 @@ if __name__ == '__main__':
     src_tokenizer = Tokenizer(Vocab('vocab/src_vocab', 10000))
     tar_tokenizer = Tokenizer(Vocab('vocab/tar_vocab', 10000))
 
-    with open(src_tokenizer_file) as file:
+    with open(src_tokenizer_file, mode='wb') as file:
         pickle.dump(src_tokenizer, file)
 
-    with open(tar_tokenizer_file) as file:
+    with open(tar_tokenizer_file, mode='wb') as file:
         pickle.dump(tar_tokenizer, file)
 
-    X, Y = preprocess_data(src_txt, src_tokenizer, tar_txt, tar_tokenizer)
+    X, Y = preprocess_data(src_txt, src_tokenizer, MAX_SRC_LEN, tar_txt, tar_tokenizer, MAX_TAR_LEN)
 
     input_dim = src_tokenizer.vocab.NumIds() + 1
     embedding_dim = 100
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     output_dim = tar_tokenizer.vocab.NumIds() + 1
     batch_size = 20
     num_layers = 2
-    epochs = 20
+    epochs = 2
     cell_type = 'LSTM'
 
     hyper_params = {}

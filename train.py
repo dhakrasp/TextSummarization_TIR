@@ -1,68 +1,19 @@
 from __future__ import print_function
 # os.environ['KERAS_BACKEND'] = 'theano'
-import numpy as np
-import codecs
 import json
-from keras.preprocessing.sequence import pad_sequences
-from keras.models import Sequential, model_from_json
+import pickle
+from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout, Embedding, TimeDistributed, RepeatVector
 from keras.layers import LSTM, GRU, SimpleRNN
 from keras.callbacks import ModelCheckpoint
 from timeit import default_timer as timer
 from Tokenizer import Tokenizer
 from data import Vocab
+from helper import *
 
 
 MAX_SRC_LEN = 60
 MAX_TAR_LEN = 20
-
-
-def decode(prediction, vocab):
-    outputs = []
-    for i in range(0, prediction.shape[0]):
-        sample = []
-        e = prediction[i]
-        for j in range(e.shape[0]):
-            k = e[j]
-            if k != 0:
-                sample.append(vocab.IdToWord(k))
-        outputs.append(sample)
-    return outputs
-
-
-def encode_input(text, tokenizer, MAX_SRC_LEN):
-    assert tokenizer is not None
-    assert MAX_SRC_LEN > 0
-    return tokenizer.texts_to_sequences(text)
-
-
-def encode_output(text, tokenizer, MAX_TAR_LEN):
-    assert tokenizer is not None
-    assert MAX_TAR_LEN > 0
-    x = tokenizer.texts_to_sequences(text)
-    enc_data = np.zeros(
-        (len(x), MAX_TAR_LEN, tokenizer.vocab.NumIds() + 1), dtype=np.bool)
-    for i in range(0, len(x)):
-        sample = x[i]
-        for j in range(0, len(sample)):
-            k = sample[j]
-            enc_data[i][j][k] = 1
-        for j in range(len(sample), MAX_TAR_LEN):
-            k = 0
-            enc_data[i][j][k] = 1
-    return enc_data
-
-
-def preprocess_data(src_text, src_tokenizer, tar_text=None, tar_tokenizer=None):
-    assert src_tokenizer is not None
-    assert src_txt is not None
-    src_data = encode_input(src_text, src_tokenizer, MAX_SRC_LEN)
-    Y = None
-    if tar_text is not None:
-        assert tar_tokenizer is not None
-        Y = encode_output(tar_text, tar_tokenizer, MAX_TAR_LEN)
-    X = pad_sequences(src_data, maxlen=MAX_SRC_LEN, padding='post')
-    return [X, Y]
 
 
 def build_graph(hyper_params, model_file):
@@ -126,28 +77,13 @@ def train(X, Y, hyper_params, epochs, model_file, weights_file):
     return [model, src_tokenizer, tar_tokenizer]
 
 
-def test(txt, tokenizer, target_vocab, model):
-    X, _ = preprocess_data(txt, tokenizer, tar_text=None, tar_tokenizer=None)
-    batch_size = 20
-
-    pred = model.predict_classes(X, batch_size=batch_size)
-    # print(pred)
-
-    outputs = decode(pred, target_vocab)
-    print('\n\n\n')
-    print('-' * 50 + '\t\tTesting\t\t' + '-' * 50)
-    print(outputs)
-
-
-def get_file_content(file_name):
-    with codecs.open(file_name, mode='r', encoding='utf-8') as f:
-        return f.read()
-
-
 if __name__ == '__main__':
     src_txt = []
     src_file_name = "source/50"
     tar_file_name = "target/10"
+    src_tokenizer_file = 'tokenizer/src_tokenizer'
+    tar_tokenizer_file = 'tokenizer/tar_tokenizer'
+
     for i in range(100):
         src_txt.append(get_file_content(src_file_name))
     tar_txt = []
@@ -156,6 +92,12 @@ if __name__ == '__main__':
 
     src_tokenizer = Tokenizer(Vocab('vocab/src_vocab', 10000))
     tar_tokenizer = Tokenizer(Vocab('vocab/tar_vocab', 10000))
+
+    with open(src_tokenizer_file) as file:
+        pickle.dump(src_tokenizer, file)
+
+    with open(tar_tokenizer_file) as file:
+        pickle.dump(tar_tokenizer, file)
 
     X, Y = preprocess_data(src_txt, src_tokenizer, tar_txt, tar_tokenizer)
 
@@ -184,11 +126,3 @@ if __name__ == '__main__':
     weights_file = 'weights'
     model, src_tokenizer, tar_tokenizer = train(
         X, Y, hyper_params, epochs, model_file=model_file, weights_file=weights_file)
-
-    model = model_from_json(model_file)
-
-    test_txt = []
-    for i in range(1):
-        test_txt.append(get_file_content(src_file_name))
-
-    test(test_txt, src_tokenizer, tar_tokenizer.vocab, model)

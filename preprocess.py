@@ -5,7 +5,7 @@ from keras.preprocessing.sequence import pad_sequences
 
 
 class Preprocessor:
-    def __init__(self, batch_size, batches, dir_name, tokenizer, max_src_len, max_tar_len):
+    def __init__(self, batch_size, dir_name, tokenizer, max_src_len, max_tar_len):
         assert batch_size > 0
         assert dir_name is not None
         self.batch_size = batch_size
@@ -13,7 +13,6 @@ class Preprocessor:
         self.tokenizer = tokenizer
         self.max_src_len = max_src_len
         self.max_tar_len = max_tar_len
-        self.batches = batches
 
     def decode(self, prediction):
         outputs = []
@@ -39,20 +38,45 @@ class Preprocessor:
             summary = f.readlines()
         return summary[2]
 
-    def __next__(self):
-        batches = 1
+    def __iter__(self):
+        return self.testing_generator()
+
+    def training_generator(self):
         while True:
-            for i in range(0, batches):
-                articles, summaries = [], []
-                for index in range(1, self.batch_size + 1):
-                    ind = i * self.batch_size + index
-                    fname = str(ind) + ".txt"
-                    fname = os.path.join(self.dir_name, fname)
-                    articles.append(Preprocessor.get_article(fname))
-                    summaries.append(Preprocessor.get_summary(fname))
+            counter = 0
+            articles = []
+            summaries = []
+
+            for fname in os.listdir(self.dir_name):
+                file_name = os.path.join(self.dir_name, fname)
+                articles.append(Preprocessor.get_article(file_name))
+                summaries.append(Preprocessor.get_summary(file_name))
+                counter += 1
+                if counter % self.batch_size == 0:
+                    X = self.encode_input(articles)
+                    Y = self.encode_output(summaries)
+                    articles = []
+                    summaries = []
+                    yield (X, Y)
+            # This is to handle cases where number of elements (left) is less than batch_size
+            X = self.encode_input(articles)
+            Y = self.encode_output(summaries)
+            yield (X, Y)
+
+    def testing_generator(self):
+        counter = 0
+        articles = []
+        for fname in os.listdir(self.dir_name):
+            file_name = os.path.join(self.dir_name, fname)
+            articles.append(Preprocessor.get_article(file_name))
+            counter += 1
+            if counter % self.batch_size == 0:
                 X = self.encode_input(articles)
-                Y = self.encode_output(summaries)
-                yield tuple([X, Y])
+                articles = []
+                yield X
+        # This is to handle cases where number of elements (left) is less than batch_size
+        X = self.encode_input(articles)
+        yield X
 
     def encode_input(self, text):
         X = self.tokenizer.texts_to_sequences(text)
@@ -62,14 +86,14 @@ class Preprocessor:
         x = self.tokenizer.texts_to_sequences(text)
         enc_data = np.zeros(
             (len(x), self.max_tar_len, self.tokenizer.vocab.NumIds() + 1), dtype=np.bool)
-        for i in range(0, len(x)):
+        for i in range(len(x)):
             sample = x[i]
-            for j in range(0, len(sample)):
+            for j in range(len(sample)):
                 k = sample[j]
-                enc_data[i][j][k] = 1
+                enc_data[i][j][k] = True
             for j in range(len(sample), self.max_tar_len):
                 k = 0
-                enc_data[i][j][k] = 1
+                enc_data[i][j][k] = True
         return enc_data
 
     @staticmethod

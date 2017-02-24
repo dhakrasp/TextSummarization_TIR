@@ -17,10 +17,3 @@ class Tokenizer:
                 sequence.append(self.vocab.WordToId(word))
             output.append(sequence)
         return output
-
-
-# if __name__ == '__main__':
-#     vocab = Vocab('vocab/src_vocab', 10000)
-#     tk = Tokenizer(vocab)
-#     print(tk.vocab.CheckVocab(UNKNOWN_TOKEN))
-#     print(tk.text_to_sequences(["Hi, Pranav."]))

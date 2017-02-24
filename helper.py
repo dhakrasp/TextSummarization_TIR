@@ -14,13 +14,32 @@ def decode(prediction, vocab):
                 sample.append(vocab.IdToWord(k))
         outputs.append(sample)
     return outputs
+def get_article(filename):
+    with open(filename) as f:
+        article=f.readlines()
+    return article[0]
+def get_summary(filename):
+    with open(filename) as f:
+        summary=f.readlines()
+    return summary[1]
 
+def agenerator(batches,batch_size,file_dir):
+    assert batches >0
+    assert batch_size > 0
+    assert file_dir is not None
+    for i in range(1,batches+1):
+    	article,summary=[],[]
+        for index in range(1,batch_size+1):
+            ind=(i-1)*batch_size+index
+            fname=file_dir+str(ind)+".txt"
+            article.append(encode_input(get_article(fname)))
+            summary.append(encode_output(get_summary(fname)))
+        yield tuple([article,summary])
 
 def encode_input(text, tokenizer, max_src_len):
     assert tokenizer is not None
     assert max_src_len > 0
     return tokenizer.texts_to_sequences(text)
-
 
 def encode_output(text, tokenizer, max_tar_len):
     assert tokenizer is not None
@@ -52,4 +71,4 @@ def preprocess_data(src_text, src_tokenizer, max_src_len, tar_text=None, tar_tok
 
 def get_file_content(file_name):
     with codecs.open(file_name, mode='r', encoding='utf-8') as f:
-        return f.read()
+return f.read()

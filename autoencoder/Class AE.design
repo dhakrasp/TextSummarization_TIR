@@ -1,0 +1,21 @@
+Class AE
+    AE model        inputs, outputs(sequence)
+        init embeddings randomly
+        init embeddings using glove
+    Encoder model   inputs, encoded representation(vector)
+    Decoder model   encoded representation, outputs(sequence)
+
+    train(input, hyperparams, outputs)
+    encode(inputs)
+
+Preprocessing
+-------------
+AE(hyperparams)
+AE.Train(i_s, o_s, ...) -> predict sentence from itself
+
+
+AE.encode(sentence) -> gives sentence's vector represenation
+
+
+AE.decode(sentence_Vetor) -> predicts sentence back from representation
+

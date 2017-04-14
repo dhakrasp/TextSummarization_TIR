@@ -1,6 +1,4 @@
 import nltk
-# from data import Vocab, UNKNOWN_TOKEN
-
 
 class Tokenizer:
     def __init__(self, vocab):

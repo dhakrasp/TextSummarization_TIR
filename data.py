@@ -74,6 +74,9 @@ class Vocab(object):
     def NumIds(self):
         return self._count
 
+    def get_words(self):
+        return [w for w, i in self._word_to_id.items()]
+
 
 def ExampleGen(data_path, num_epochs=None):
     """Generates tf.Examples from path of data files.

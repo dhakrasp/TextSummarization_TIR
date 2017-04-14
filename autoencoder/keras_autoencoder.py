@@ -56,7 +56,7 @@ def to_classes(sample):
 
 def build_model():
     inputs = Input(shape=(max_sequence_len, vocab_size))
-    # embedding_layer = Embedding(input_dim=vocab_size + 1, output_dim=embedding_dim, input_length=max_sequence_len, trainable=True)
+    # embedding_layer = Embedding(input_dim=vocab_size + 1, output_dim=embedding_dim, input_length=max_sequence_len, trainable=True, weights=[embed])
     # embeddings = embedding_layer(inputs)
     encoded = LSTM(rep_size)(inputs)
     # encoded = LSTM(rep_size)(inputs)
@@ -74,6 +74,11 @@ def build_model():
 
     sequence_autoencoder.compile(optimizer=opt, loss='mse', metrics=['accuracy'])
     return sequence_autoencoder, None, encoder, None
+
+def decoder():
+    input_vector = Input(shape=(rep_size,))
+    repeat = RepeatVector(max_sequence_len)(input_vector)
+    outputs = LSTM(vocab_size, return_sequences=True)(repeat)
 
 
 def get_model(sequential=False):

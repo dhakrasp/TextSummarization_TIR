@@ -37,10 +37,14 @@ class AutoEncoder():
         self.embedding_dim = embedding_dim
         self.hidden_dim = hidden_dim
         self.optimizer = optimizer
+        self.sequence_autoencoder = None
+        self.encoder = None
+        self.decoder = None
 
     def build_models(self):
         if self.optimizer is None:
             self.optimizer = optimizers.SGD(lr=0.1, momentum=0.95, nesterov=True)
+            # self.optimizer = optimizers.RMSprop(lr=0.1)
 
         inputs = Input(shape=(self.max_sequence_len,))
         if self.embed_param is None:
@@ -51,6 +55,7 @@ class AutoEncoder():
         encoded = LSTM(self.hidden_dim)(embeddings)
         repeat = RepeatVector(self.max_sequence_len)(encoded)
         outputs = LSTM(self.vocab_size, return_sequences=True)(repeat)
+        # To Do: Use softmax
 
         self.sequence_autoencoder = Model(inputs, outputs)
         self.encoder = Model(inputs, encoded)
@@ -89,18 +94,18 @@ if __name__ == '__main__':
     tokenizer = Tokenizer(vocab)
     with open(tokenizer_file, mode='wb') as file:
         pickle.dump(tokenizer, file)
-    max_sequence_len = 50
+    max_sequence_len = 1
     p = Preprocessor(1, 'data/sentences.txt', tokenizer, max_sequence_len)
 
     embedding_dim = 128
-    hidden_dim = 512
-    ae = AutoEncoder(max_sequence_len, vocab.NumIds(), embedding_dim, hidden_dim)
+    hidden_dim = 256
+    ae = AutoEncoder(max_sequence_len, 1000, embedding_dim, hidden_dim)
     ae.build_models()
     reducelr_cb = ReduceLROnPlateau(monitor='val_acc', factor=0.5, patience=10, verbose=1, mode='auto', epsilon=0.0001, cooldown=0, min_lr=1e-20)
     checkpoint_cb = ModelCheckpoint(model_weights, period=5)
     earlystopping_cb = EarlyStopping(min_delta=0.0001, patience=10)
     callbacks_list = [reducelr_cb, checkpoint_cb]
-    exit()
     x = p.get_data()
+    x = x[:100]
     print('-' * 30, 'Loaded data', '-' * 30)
     ae.train(x, batch_size=1, num_epochs=1, callbacks_list=callbacks_list)

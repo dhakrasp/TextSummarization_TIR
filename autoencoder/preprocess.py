@@ -1,5 +1,9 @@
 from keras.preprocessing.sequence import pad_sequences
 
+UNKNOWN_TOKEN = '<UNK>'
+SOS_TOKEN = '<SOS>'
+EOS_TOKEN = '<EOS>'
+
 
 class Preprocessor:
     def __init__(self, batch_size, filename, tokenizer, max_src_len):
@@ -15,4 +19,7 @@ class Preprocessor:
         with open(self.filename, mode='r', encoding='utf-8') as file:
             lines = file.readlines()
         data = self.tokenizer.texts_to_sequences(lines)
-        return pad_sequences(data, maxlen=self.max_src_len, padding='post')
+        for line in data:
+            line = line.append(self.tokenizer.vocab.WordToId(EOS_TOKEN))
+        # return pad_sequences(data, maxlen=self.max_src_len, padding='post')
+        return data

@@ -3,13 +3,18 @@ import os
 import codecs
 import re
 import xml.etree.ElementTree as et
+from util import *
 
 UNKNOWN_TOKEN = '<UNK>'
+SOS_TOKEN = '<SOS>'
+EOS_TOKEN = '<EOS>'
 
 
 def generate_vocab(data_dir_name):
     word_counts = dict()
     word_counts[UNKNOWN_TOKEN] = 0
+    word_counts[SOS_TOKEN] = 1
+    word_counts[EOS_TOKEN] = 2
     for fname in os.listdir(data_dir_name):
         for line in codecs.open(os.path.join(data_dir_name, fname), encoding='utf-8'):
             tokens = nltk.word_tokenize(line)
@@ -41,7 +46,7 @@ def write_vocab(data_dir_name, vocab_file_name):
 
 
 if __name__ == '__main__':
-    data_dir_name = 'processed'
+    data_dir_name = pro_text_dir
     vocab_file_name = 'vocab/vocab'
     write_vocab(data_dir_name, vocab_file_name)
     # data_dir_name = 'source'

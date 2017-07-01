@@ -67,7 +67,9 @@ class Vocab(object):
         return self._word_to_id[word]
 
     def IdToWord(self, word_id):
-        if word_id not in self._id_to_word:
+        if word_id == 0:
+            return ''
+        elif word_id not in self._id_to_word:
             raise ValueError('id not found in vocab: %d.' % word_id)
         return self._id_to_word[word_id]
 

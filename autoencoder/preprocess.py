@@ -17,9 +17,13 @@ class Preprocessor:
     def get_data(self):
         lines = []
         with open(self.filename, mode='r', encoding='utf-8') as file:
-            lines = file.readlines()
+            lines = file.readline()
         data = self.tokenizer.texts_to_sequences(lines)
-        for line in data:
-            line = line.append(self.tokenizer.vocab.WordToId(EOS_TOKEN))
-        # return pad_sequences(data, maxlen=self.max_src_len, padding='post')
-        return data
+        # for line in data:
+        #     line = line.append(self.tokenizer.vocab.WordToId(EOS_TOKEN))
+        return pad_sequences(data, maxlen=self.max_src_len, padding='post', truncating='post')
+        # return data
+
+    def process_sentences(self, sentences):
+        data = self.tokenizer.texts_to_sequences(sentences)
+        return pad_sequences(data, maxlen=self.max_src_len, padding='post', truncating='post')

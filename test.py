@@ -25,6 +25,7 @@ if __name__ == '__main__':
     model = model_from_json(json_string)
     model.load_weights(weights_file)
     model.compile(loss='categorical_crossentropy', optimizer='rmsprop')
+    batch_size = 4
     p = Preprocessor(batch_size, pro_text_dir, tokenizer, MAX_SRC_LEN, MAX_TAR_LEN)
     gen = p.testing_generator()
     test(gen, p, model)

@@ -48,6 +48,9 @@ class Preprocessor:
             summaries = []
 
             for fname in os.listdir(self.dir_name):
+                if counter % self.batch_size == 0:
+                    articles = []
+                    summaries = []
                 file_name = os.path.join(self.dir_name, fname)
                 articles.append(Preprocessor.get_article(file_name))
                 summaries.append(Preprocessor.get_summary(file_name))
@@ -55,12 +58,15 @@ class Preprocessor:
                 if counter % self.batch_size == 0:
                     X = self.encode_input(articles)
                     Y = self.encode_output(summaries)
-                    articles = []
-                    summaries = []
                     yield (X, Y)
+
             # This is to handle cases where number of elements (left) is less than batch_size
             X = self.encode_input(articles)
+            print(X.shape)
+            print('|' * 50)
             Y = self.encode_output(summaries)
+            print(Y.shape)
+            print('|' * 50)
             yield (X, Y)
 
     def testing_generator(self):
@@ -101,8 +107,12 @@ class Preprocessor:
         counter = 0
         for fname in os.listdir(dir_name1):
             counter += 1
-            with codecs.open(os.path.join(dir_name1, fname), 'r', encoding='utf-8') as f:
-                text = f.readlines()
+            try:
+                with codecs.open(os.path.join(dir_name1, fname), 'r', encoding='utf-8') as f:
+                    text = f.readlines()
+            except UnicodeDecodeError:
+                print('Error while reading file --------->\t', fname)
+                continue
             i = 2
             j = 1
             art = [''] * 4
@@ -113,15 +123,15 @@ class Preprocessor:
                 article = ''
                 while i < len(text) and text[i] != '\n':
                     if j == 1:
-                        words = text[i].split()
-                        if words[-1] == '1' or words[-1] == '2':
+                        words = text[i].replace('@', '').split()
+                        if words[-1] == '1':
                             # print(words[-1])
                             st = " ".join(words[:-1])
                             st.replace('\t', ';')
                             st += '. '
                             article += st
                     if j == 2:
-                        lords = text[i].split()
+                        lords = text[i].replace('@', '').split()
                         lords = " ".join(lords)
                         lords.replace('\n', ' ')
                         lords += '. '
@@ -137,4 +147,4 @@ class Preprocessor:
             with codecs.open(new_file_name, 'w', encoding='utf-8') as f:
                 f.write(art[1] + '\n\n')
                 f.write(art[2] + '\n\n')
-                f.write(entities)
+                # f.write(entities)

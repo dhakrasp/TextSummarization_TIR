@@ -670,7 +670,8 @@ def trainEpochs(encoder, decoder, n_epochs, preprocessor, print_every=1000, plot
     # training_pairs = [variablesFromPair(random.choice(pairs))
     #                   for i in range(n_epochs)]
     training_data = [Variable(torch.LongTensor(sample).view(-1, 1)) for sample in preprocessor.get_data()]
-
+    if use_cuda:
+        training_data = training_data.cuda()
     criterion=nn.NLLLoss()
 
     for epoch in range(1, n_epochs + 1):
